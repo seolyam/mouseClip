@@ -58,8 +58,8 @@ A major concern for players using companion tools is triggering anti-cheat syste
   - ⚪ **Idle**: Standing by (game minimized or other app focused).
   - 🟡 **Paused**: Manually bypassed via hotkey.
 - ⌨️ **Global Hotkeys**:
-  - `Ctrl + Shift + F11`: Toggle manual bypass / lock override on the fly.
-  - `Ctrl + Shift + F12`: Immediate emergency exit (restores cursor bounds and terminates).
+  - `Ctrl + Alt + C`: Toggle manual pause / resume boundary locking on the fly.
+  - `Ctrl + Alt + End` or `Ctrl + Alt + Q`: Immediate emergency kill-switch (restores cursor bounds and terminates cleanly).
 - 🪶 **Zero Third-Party Dependencies**: Pure native C++17 statically linked against standard Windows libraries (`user32`, `kernel32`, `shell32`, `gdi32`). No runtime DLLs, no .NET dependencies, no installation needed.
 
 ---
@@ -124,8 +124,9 @@ Whenever League of Legends is in the foreground, your cursor will stay locked in
 
 | Hotkey | Action | Description |
 | :--- | :--- | :--- |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F11</kbd> | **Toggle Lock / Bypass** | Manually bypass or re-enable clipping at any time. |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F12</kbd> | **Emergency Exit** | Instantly releases cursor bounds and exits application cleanly. |
+| <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>C</kbd> | **Toggle Pause / Resume** | Manually pause or resume cursor boundary locking at any time. |
+| <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>End</kbd> | **Emergency Kill-Switch** | Instantly releases cursor bounds and exits application cleanly. |
+| <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Q</kbd> | **Alternate Kill-Switch** | Secondary quick-exit hotkey. |
 
 ---
 
@@ -137,15 +138,17 @@ For troubleshooting or verifying coordinate calculations on your multi-monitor l
 ======================================================================
      mouseClip - Diagnostic Mode (Verbose Logging Enabled)
 ======================================================================
-[SystemTray] Registered tray icon and context menu.
-[TargetDetector] Listening for RiotWindowClass / League of Legends.exe...
-[GlobalHotkey] Registered Ctrl+Shift+F11 (Toggle) and Ctrl+Shift+F12 (Exit).
-[WinEvent] Foreground window changed: HWND=00000000001A06E2
-[TargetDetector] Matched target: RiotWindowClass (PID: 14920, League of Legends.exe)
-[ClipManager] Locking cursor to client rect: (0, 0 - 2560, 1440) [Width: 2560, Height: 1440]
-[WinEvent] Foreground window changed: HWND=00000000000E03FA
-[TargetDetector] Window belongs to Discord.exe. Ignoring.
-[ClipManager] Releasing cursor boundary lock.
+[01:30:15.120] [INIT] mouseClip v1.0 starting up...
+[01:30:15.122] [INIT] DPI Awareness context initialized (PerMonitorV2).
+[01:30:15.124] [CONFIG] Target criteria: Window Class 'RiotWindowClass' / Process 'League of Legends.exe'
+[01:30:15.125] [CONFIG] Excluded: LeagueClient launcher & UxSubprocess
+[01:30:15.126] [HOTKEY] Hotkeys registered: Ctrl+Alt+C (Toggle) | Ctrl+Alt+End / Ctrl+Alt+Q (Kill-Switch)
+[01:30:15.128] [TRAY] System tray icon successfully initialized.
+[01:30:15.130] [HOOK] WinEventHook (EVENT_SYSTEM_FOREGROUND) installed successfully.
+[01:30:15.131] [TIMER] Heartbeat timer started (200ms interval).
+[01:30:15.132] [READY] mouseClip is active and monitoring.
+[01:30:18.440] [LOCK] BOUND: Locked cursor to [2560x1440] at screen (0,0 - 2560,1440) | Process: League of Legends.exe (PID 14920)
+[01:30:25.812] [RELEASE] Target window defocused/closed. Cursor bounds released.
 ```
 
 ---
