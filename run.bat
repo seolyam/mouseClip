@@ -1,0 +1,3 @@
+@echo off
+echo Starting mouseClip in background (with system tray icon)...
+start "" "%~dp0bin\mouseClip.exe" %*

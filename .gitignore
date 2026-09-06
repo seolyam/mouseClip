@@ -1,0 +1,27 @@
+# Binaries and build outputs
+build/
+bin/
+out/
+
+# Visual Studio temporary files and caches
+.vs/
+*.sln.docstates
+*.suo
+*.user
+*.vcxproj.user
+
+# Intermediate compiled objects and symbol files
+*.obj
+*.o
+*.res
+*.pdb
+*.ilk
+*.idb
+*.exp
+*.lib
+
+# Logs and test execution traces
+*.log
+test_run.log
+*.tmp
+.system_generated/

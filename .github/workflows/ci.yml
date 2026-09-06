@@ -1,0 +1,46 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ "master", "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up MSVC environment
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Build with build.bat
+      run: .\build.bat
+
+    - name: Build and Run Unit Tests
+      shell: cmd
+      run: |
+        cl.exe /nologo /std:c++17 /O2 /MT /W4 /EHsc tests\unit_tests.cpp src\clip_manager.cpp src\target_detector.cpp /Fe:bin\unit_tests.exe /link user32.lib kernel32.lib
+        bin\unit_tests.exe
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mouseClip-windows-x64
+        path: |
+          bin/mouseClip.exe
+          bin/mouseClip_debug.exe
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          bin/mouseClip.exe
+          bin/mouseClip_debug.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
