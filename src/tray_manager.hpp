@@ -37,6 +37,12 @@ public:
     // Removes the icon from the notification area
     void Remove();
 
+    // Displays a Windows balloon/toast notification from the system tray
+    void ShowNotification(const std::wstring& title, const std::wstring& message, DWORD infoFlags = NIIF_INFO);
+
+    // Current status string
+    const std::wstring& GetStatusString() const { return m_statusString; }
+
     // Check if initialized
     bool IsInitialized() const { return m_isInitialized; }
 

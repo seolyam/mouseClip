@@ -96,6 +96,7 @@ bool TrayManager::Initialize(HWND hwndOwner) {
         // Ensure standard tooltip behavior
         m_nid.uVersion = NOTIFYICON_VERSION_4;
         Shell_NotifyIconW(NIM_SETVERSION, &m_nid);
+        ShowNotification(L"mouseClip Active", L"Running in system tray. Monitoring for League of Legends match...");
         return true;
     }
 
@@ -105,11 +106,22 @@ bool TrayManager::Initialize(HWND hwndOwner) {
     m_nid.cbSize = NOTIFYICONDATAW_V2_SIZE;
     if (Shell_NotifyIconW(NIM_ADD, &m_nid)) {
         m_isInitialized = true;
+        ShowNotification(L"mouseClip Active", L"Running in system tray. Monitoring for League of Legends match...");
         return true;
     }
 
     SetLastError(err);
     return false;
+}
+
+void TrayManager::ShowNotification(const std::wstring& title, const std::wstring& message, DWORD infoFlags) {
+    if (!m_isInitialized) return;
+    NOTIFYICONDATAW nid = m_nid;
+    nid.uFlags |= NIF_INFO;
+    nid.dwInfoFlags = infoFlags;
+    wcsncpy_s(nid.szInfoTitle, title.c_str(), ARRAYSIZE(nid.szInfoTitle) - 1);
+    wcsncpy_s(nid.szInfo, message.c_str(), ARRAYSIZE(nid.szInfo) - 1);
+    Shell_NotifyIconW(NIM_MODIFY, &nid);
 }
 
 void TrayManager::UpdateState(ClipState state, const TargetInfo& /*target*/, const ClipBounds& bounds) {

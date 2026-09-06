@@ -144,7 +144,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
         return 0;
     }
     case WM_TRAYICON: {
-        if (LOWORD(lParam) == WM_RBUTTONUP || LOWORD(lParam) == WM_CONTEXTMENU) {
+        if (LOWORD(lParam) == WM_RBUTTONUP || LOWORD(lParam) == WM_CONTEXTMENU || LOWORD(lParam) == WM_LBUTTONUP) {
             if (g_trayManager) {
                 g_trayManager->ShowContextMenu(hwnd);
             }
@@ -257,6 +257,21 @@ static void InitializeDpiAwareness() {
 }
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*lpCmdLine*/, int /*nCmdShow*/) {
+    // 0. Single instance check: Prevent duplicate background processes
+    HANDLE hSingleInstanceMutex = CreateMutexW(NULL, TRUE, L"mouseClip_SingleInstance_Mutex_9A7B3C");
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        MessageBoxW(NULL,
+            L"mouseClip is already active and running in your system tray!\n\n"
+            L"Look for the crosshairs icon in the bottom-right of your taskbar (click the '^' arrow if it is hidden).\n\n"
+            L"• Click icon: View live status & controls\n"
+            L"• Ctrl + Alt + C: Pause / Resume locking\n"
+            L"• Ctrl + Alt + End: Exit mouseClip",
+            L"mouseClip Already Running",
+            MB_OK | MB_ICONINFORMATION);
+        if (hSingleInstanceMutex) CloseHandle(hSingleInstanceMutex);
+        return 0;
+    }
+
     // 1. Initialize DPI Awareness v2 first
     InitializeDpiAwareness();
 
@@ -298,6 +313,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
     g_trayManager = &trayManager;
 
     // 5. Register state change callback for logging and tray icon updates
+    static bool s_hasNotifiedConnect = false;
     clipManager.SetStateChangeCallback([](ClipState state, const TargetInfo& target, const ClipBounds& bounds) {
         if (g_trayManager && g_config.enableTray) {
             g_trayManager->UpdateState(state, target, bounds);
@@ -311,10 +327,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
             msg += std::to_wstring(bounds.screenRect.right) + L"," + std::to_wstring(bounds.screenRect.bottom) + L") ";
             msg += L"| Process: " + target.processName + L" (PID " + std::to_wstring(target.processId) + L")";
             LogMessage("LOCK", msg);
+
+            if (!s_hasNotifiedConnect && g_trayManager && g_config.enableTray) {
+                s_hasNotifiedConnect = true;
+                std::wstring toast = L"Boundary locked to League of Legends [" + std::to_wstring(bounds.width) + L"x" + std::to_wstring(bounds.height) + L"]. Press Ctrl+Alt+C to pause.";
+                g_trayManager->ShowNotification(L"League of Legends Connected", toast);
+            }
             break;
         }
         case ClipState::Idle: {
             LogMessage("RELEASE", L"Target window defocused/closed. Cursor bounds released.");
+            if (target.processId == 0) {
+                s_hasNotifiedConnect = false;
+            }
             break;
         }
         case ClipState::Paused: {
@@ -422,6 +447,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPWSTR /*l
     // Absolutely ensure cursor is free
     clipManager.Release();
     ClipCursor(NULL);
+
+    if (hSingleInstanceMutex) {
+        ReleaseMutex(hSingleInstanceMutex);
+        CloseHandle(hSingleInstanceMutex);
+    }
 
     LogMessage("SHUTDOWN", L"Cursor released. Goodbye!");
     return 0;
